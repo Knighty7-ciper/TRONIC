@@ -1,9 +1,10 @@
 [build]
-  publish = "tronic/frontend/build"
-  command = "cd tronic/frontend && npm install && npm run build"
+  base = "tronic/frontend"
+  publish = "build"
+  command = "npm install && npm run build"
 
 [functions]
-  directory = "tronic/functions"
+  directory = "../functions"
   node_bundler = "esbuild"
 
 [build.environment]
@@ -11,35 +12,17 @@
   REACT_APP_NETLIFY = "true"
   CI = "false"
 
-# Simple API routing - all API calls go to unified function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
 
-# SPA Routing Support
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# CORS Headers
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-[build.processing.html]
-  pretty_urls = true
-
-# Security Headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -49,7 +32,6 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; connect-src 'self' https://wszbkkdhlzpwjrexvyrl.supabase.co https://generativelanguage.googleapis.com ws: wss:; img-src 'self' data: https:; media-src 'self'; worker-src 'self' blob:;"
 
-# Cache static assets
 [[headers]]
   for = "/static/*"
   [headers.values]
@@ -60,6 +42,5 @@
   [headers.values]
     Cache-Control = "public, max-age=86400"
 
-# Functions environment
 [functions.environment]
   NODE_OPTIONS = "--max_old_space_size=512"
