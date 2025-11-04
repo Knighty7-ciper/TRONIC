@@ -21,7 +21,7 @@ Successfully replaced all mock data with real **Supabase** and **Gemini API** in
 2. **frontend/src/config/gemini.js** - Real Gemini AI integration  
 3. **frontend/src/contexts/AuthContext.js** - Real authentication flow
 4. **frontend/src/services/api.js** - Real API calls replacing mocks
-5. **frontend/package.json** - Added @supabase/supabase-js and @google/genai
+5. **frontend/package.json** - Added @supabase/supabase-js and @google/generative-ai
 
 ### Backend Changes
 1. **functions/server.js** - Real Supabase and Gemini endpoints

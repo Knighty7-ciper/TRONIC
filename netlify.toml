@@ -1,6 +1,6 @@
 [build]
   publish = "frontend/build"
-  command = "npm install && cd frontend && npm install && npm run build"
+  command = "npm install && cd frontend && npm cache clean --force && rm -rf node_modules frontend/node_modules frontend/build && npm install && cd frontend && npm install && npm run build"
 
 [functions]
   directory = "functions"
@@ -11,17 +11,10 @@
   REACT_APP_NETLIFY = "true"
   CI = "false"
 
-# API Routing - Proxy API requests to backend functions
+# Simple API routing - all API calls go to unified function
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/:splat"
-  status = 200
-  force = true
-
-# WebSocket proxy for real-time features
-[[redirects]]
-  from = "/socket.io/*"
-  to = "/.netlify/functions/server/socket.io/:splat"
+  to = "/api/server/:splat"
   status = 200
   force = true
 

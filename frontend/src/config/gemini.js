@@ -1,5 +1,5 @@
 // Gemini AI Configuration using your API key
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini AI with your API key
 const GEMINI_API_KEY = 'AIzaSyDynJkTlhIsQls1bgsZ3ydBMHfrda_wPPA';
