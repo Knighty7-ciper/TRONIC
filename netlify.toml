@@ -1,9 +1,9 @@
 [build]
-  publish = "tronic/frontend/build"
-  command = "cd tronic/frontend && npm install && npm run build"
+  publish = "frontend/build"
+  command = "cd frontend && npm install && npm run build"
 
 [functions]
-  directory = "tronic/functions"
+  directory = "functions"
   node_bundler = "esbuild"
 
 [build.environment]
