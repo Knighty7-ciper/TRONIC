@@ -1,9 +1,9 @@
 [build]
-  publish = "frontend/build"
-  command = "npm install && cd frontend && npm cache clean --force && rm -rf node_modules frontend/node_modules frontend/build && npm install && cd frontend && npm install && npm run build"
+  publish = "tronic/frontend/build"
+  command = "cd tronic/frontend && npm install && npm run build"
 
 [functions]
-  directory = "functions"
+  directory = "tronic/functions"
   node_bundler = "esbuild"
 
 [build.environment]
@@ -14,7 +14,7 @@
 # Simple API routing - all API calls go to unified function
 [[redirects]]
   from = "/api/*"
-  to = "/api/server/:splat"
+  to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
 
