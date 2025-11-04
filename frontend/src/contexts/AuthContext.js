@@ -29,7 +29,11 @@ export const AuthProvider = ({ children }) => {
           
           // Try to verify token is still valid, but don't block if it fails
           try {
-            const profile = await apiService.auth.getProfile();
+            const profilePromise = apiService.auth.getProfile();
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile timeout')), 3000)
+            );
+            const profile = await Promise.race([profilePromise, timeoutPromise]);
             if (profile?.data) {
               setUser(profile.data);
             }
@@ -129,7 +133,11 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await apiService.auth.getProfile();
+      const profilePromise = apiService.auth.getProfile();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile update timeout')), 5000)
+      );
+      const response = await Promise.race([profilePromise, timeoutPromise]);
       const updatedUser = response.data;
       
       setUser(updatedUser);
