@@ -14,11 +14,8 @@ import { useSocket } from '../../contexts/SocketContext';
 import { apiService } from '../../services/api';
 import {
   LineChart,
-  Line,
   AreaChart,
-  Area,
   BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,7 +27,6 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
-  const { user } = useAuth();
   const { connected } = useSocket();
   
   const [dashboardData, setDashboardData] = useState(null);
@@ -102,7 +98,6 @@ const Dashboard = () => {
   const stats = dashboardData?.user_stats || {};
   const recentMessages = dashboardData?.recent_messages || [];
   const recentActivities = dashboardData?.recent_activities || [];
-  const systemMetrics = dashboardData?.system_metrics || [];
 
   // Chart data for real-time metrics
   const chartData = realTimeMetrics;

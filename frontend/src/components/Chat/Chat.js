@@ -9,12 +9,12 @@ import toast from 'react-hot-toast';
 const Chat = () => {
   const { roomId = 'general' } = useParams();
   const { user } = useAuth();
-  const { messages, joinRoom, leaveRoom, sendMessage } = useSocket();
+  const { messages, joinRoom, leaveRoom } = useSocket();
   
   const [message, setMessage] = useState('');
   const [roomMessages, setRoomMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [aiMode, setAiMode] = useState(roomId === 'ai-assistant');
+  const [aiMode] = useState(roomId === 'ai-assistant');
   
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);

@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       );
       
       const registerPromise = apiService.auth.register(userData);
-      const response = await Promise.race([registerPromise, timeoutPromise]);
+      await Promise.race([registerPromise, timeoutPromise]);
       
       toast.success('Registration successful. Please log in.');
       return { success: true, message: 'Registration successful' };

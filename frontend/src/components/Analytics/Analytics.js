@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
-  Users, 
   MessageSquare, 
   Terminal, 
   Activity,
-  Calendar,
-  Filter,
   Download,
   RefreshCw
 } from 'lucide-react';
@@ -27,13 +24,10 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-  ComposedChart
+  Cell
 } from 'recharts';
 
 const Analytics = () => {
-  const { user } = useAuth();
-  
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('24h');
@@ -97,7 +91,7 @@ const Analytics = () => {
 
   useEffect(() => {
     loadAnalytics();
-  }, [timeRange, activityFilter]);
+  });
 
   const handleRefresh = async () => {
     setRefreshing(true);

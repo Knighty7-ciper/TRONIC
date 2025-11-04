@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Calendar, Shield, Edit, Save, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const UserProfile = () => {

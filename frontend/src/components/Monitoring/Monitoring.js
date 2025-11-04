@@ -10,8 +10,7 @@ import {
   HardDrive,
   WifiOff,
   RefreshCw,
-  Bell,
-  Settings
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
@@ -29,7 +28,6 @@ import {
 } from 'recharts';
 
 const Monitoring = () => {
-  const { user } = useAuth();
   const { connected } = useSocket();
   
   const [systemHealth, setSystemHealth] = useState(null);

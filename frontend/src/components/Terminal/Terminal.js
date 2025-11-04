@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, Play, History, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Terminal, Play, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const TerminalComponent = () => {
-  const { user } = useAuth();
   const { commandUpdates } = useSocket();
   
   const [currentCommand, setCurrentCommand] = useState('');
@@ -23,7 +22,6 @@ const TerminalComponent = () => {
       timestamp: new Date().toISOString(),
     },
   ]);
-  const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
   
