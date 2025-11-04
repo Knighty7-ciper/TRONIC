@@ -2,37 +2,3 @@
 # This ensures all routes serve index.html for React Router
 
 /*    /index.html   200
-
-# API redirects for serverless functions
-/.netlify/functions/*  /.netlify/functions/:splat  200
-
-# Health check
-/api/health  /.netlify/functions/health  200
-/health  /.netlify/functions/health  200
-
-# Authentication
-/api/auth/login  /.netlify/functions/auth-login  200
-/api/auth/register  /.netlify/functions/auth-register  200
-/api/auth/logout  /.netlify/functions/auth-logout  200
-
-# AI
-/api/ai/chat  /.netlify/functions/ai-chat  200
-/api/ai/generate-response  /.netlify/functions/ai-generate  200
-
-# Chat
-/api/chat/*  /.netlify/functions/chat  200
-
-# Commands
-/api/commands/*  /.netlify/functions/commands  200
-
-# Analytics
-/api/analytics/*  /.netlify/functions/analytics  200
-
-# Monitoring
-/api/monitoring/*  /.netlify/functions/monitoring  200
-
-# User
-/api/user/*  /.netlify/functions/user  200
-
-# Logs
-/api/logs/*  /.netlify/functions/logs  200
