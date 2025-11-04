@@ -99,7 +99,7 @@ cd frontend && PORT=4001 npm start
 
 ### Environment Variables (.env)
 
-The platform includes a complete `.env` file with:
+Create a `.env` file in the root directory with the following variables:
 
 ```env
 # Backend Configuration
@@ -107,22 +107,28 @@ PORT=5500
 NODE_ENV=development
 
 # Supabase Database
-SUPABASE_URL=https://wszbkkdhlzpwjrexvyrl.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_URL=your_supabase_project_url_here
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # AI Integration
-GEMINI_API_KEY=AIzaSyDynJkTlhIsQls1bgsZ3ydBMHfrda_wPPA
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Authentication
-JWT_SECRET_KEY=60357827208a50cdbee3754804dc11f75b30ac50cd0768fdde1e55e7d1456637
+JWT_SECRET_KEY=your_jwt_secret_key_here
 
 # Frontend Configuration
 REACT_APP_API_URL=http://localhost:5500/api
-REACT_SUPABASE_URL=https://wszbkkdhlzpwjrexvyrl.supabase.co
-REACT_GEMINI_API_KEY=AIzaSyDynJkTlhIsQls1bgsZ3ydBMHfrda_wPPA
-REACT_JWT_SECRET=60357827208a50cdbee3754804dc11f75b30ac50cd0768fdde1e55e7d1456637
+REACT_SUPABASE_URL=your_supabase_project_url_here
+REACT_GEMINI_API_KEY=your_gemini_api_key_here
+REACT_JWT_SECRET=your_jwt_secret_key_here
 ```
+
+**🔒 IMPORTANT SECURITY NOTES:**
+- Replace all `your_*_here` placeholders with your actual API keys
+- **NEVER commit `.env` files to version control**
+- Use the `NETLIFY_ENV_TEMPLATE.txt` file for deployment environment variables
+- Keep all API keys secret and secure
 
 ## 🌐 Access Points
 
