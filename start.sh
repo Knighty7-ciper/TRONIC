@@ -15,6 +15,19 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Default ports (can be overridden by environment)
+BACKEND_PORT=${PORT:-5500}
+FRONTEND_PORT=${FRONTEND_PORT:-4001}
+BACKEND_URL="http://localhost:$BACKEND_PORT"
+FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+
+echo "Configuration:"
+echo "  Backend Port: $BACKEND_PORT"
+echo "  Frontend Port: $FRONTEND_PORT"
+echo "  Backend URL: $BACKEND_URL"
+echo "  Frontend URL: $FRONTEND_URL"
+echo ""
+
 # Step 1: Kill existing processes
 echo -e "${BLUE}Step 1: Killing existing processes...${NC}"
 pkill -f "node server.js" 2>/dev/null || echo "No backend processes"
@@ -24,7 +37,7 @@ sleep 2
 # Step 2: Install backend dependencies
 echo -e "${BLUE}Step 2: Installing backend dependencies...${NC}"
 if [ ! -d "node_modules" ]; then
-    npm install --no-optional --no-audit --no-fund
+    npm install --prefix . --local
     echo "✅ Backend dependencies installed"
 else
     echo "✅ Backend dependencies already installed"
@@ -50,8 +63,8 @@ else
 fi
 
 # Step 5: Start backend
-echo -e "${BLUE}Step 5: Starting backend server (port 5500)...${NC}"
-PORT=5500 node server.js > backend.log 2>&1 &
+echo -e "${BLUE}Step 5: Starting backend server (port $BACKEND_PORT)...${NC}"
+PORT=$BACKEND_PORT node server.js > backend.log 2>&1 &
 BACKEND_PID=$!
 echo "✅ Backend started (PID: $BACKEND_PID)"
 
@@ -59,7 +72,7 @@ echo "✅ Backend started (PID: $BACKEND_PID)"
 sleep 3
 
 # Check backend health
-if curl -s http://localhost:5500/api/health > /dev/null; then
+if curl -s $BACKEND_URL/api/health > /dev/null; then
     echo "✅ Backend health check passed"
 else
     echo -e "${RED}❌ Backend health check failed - checking logs...${NC}"
@@ -68,9 +81,9 @@ else
 fi
 
 # Step 6: Start frontend
-echo -e "${BLUE}Step 6: Starting frontend (port 4001)...${NC}"
+echo -e "${BLUE}Step 6: Starting frontend (port $FRONTEND_PORT)...${NC}"
 cd frontend
-PORT=4001 BROWSER=none npm start > ../frontend.log 2>&1 &
+PORT=$FRONTEND_PORT BROWSER=none npm start > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 echo "✅ Frontend started (PID: $FRONTEND_PID)"
@@ -83,26 +96,26 @@ echo ""
 echo "=== SERVICE STATUS ==="
 
 # Check backend
-if curl -s http://localhost:5500/api/health > /dev/null; then
-    echo "✅ Backend: http://localhost:5500 (healthy)"
-    echo "   Health: $(curl -s http://localhost:5500/api/health | jq -r '.status' 2>/dev/null || echo 'unknown')"
+if curl -s $BACKEND_URL/api/health > /dev/null; then
+    echo "✅ Backend: $BACKEND_URL (healthy)"
+    echo "   Health: $(curl -s $BACKEND_URL/api/health | jq -r '.status' 2>/dev/null || echo 'unknown')"
 else
-    echo "❌ Backend: http://localhost:5500 (not responding)"
+    echo "❌ Backend: $BACKEND_URL (not responding)"
 fi
 
 # Check frontend
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:4001 | grep -q "200"; then
-    echo "✅ Frontend: http://localhost:4001 (healthy)"
+if curl -s -o /dev/null -w "%{http_code}" $FRONTEND_URL | grep -q "200"; then
+    echo "✅ Frontend: $FRONTEND_URL (healthy)"
 else
-    echo "❌ Frontend: http://localhost:4001 (not responding)"
+    echo "❌ Frontend: $FRONTEND_URL (not responding)"
 fi
 
 echo ""
 echo -e "${GREEN}🎉 TRONIC Platform is running!${NC}"
 echo "======================================"
-echo -e "${BLUE}Frontend:${NC} http://localhost:4001"
-echo -e "${BLUE}Backend:${NC}  http://localhost:5500"
-echo -e "${BLUE}Health:${NC}   http://localhost:5500/api/health"
+echo -e "${BLUE}Frontend:${NC} $FRONTEND_URL"
+echo -e "${BLUE}Backend:${NC}  $BACKEND_URL"
+echo -e "${BLUE}Health:${NC}   $BACKEND_URL/api/health"
 echo ""
 echo -e "${YELLOW}Logs:${NC}"
 echo "  Backend:  tail -f backend.log"

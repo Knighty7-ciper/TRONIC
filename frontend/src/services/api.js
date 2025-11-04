@@ -11,8 +11,8 @@ const getBaseURL = () => {
     // Fallback to relative API paths
     return '/api';
   }
-  // In development, use explicit URL
-  return process.env.REACT_APP_API_URL || 'http://localhost:5500/api';
+  // In development, use environment variable or default relative path
+  return process.env.REACT_APP_API_URL || '/api';
 };
 
 const api = axios.create({

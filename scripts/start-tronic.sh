@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# TRONIC Platform Force Start Script - WORKING VERSION
-# Based on actual test results - ports 5500 (backend) and 4001 (frontend)
+# TRONIC Platform Force Start Script - Environment-Aware Version
+# Ports configurable via environment variables
 
 set -e  # Exit on any error
 
-echo "🚀 TRONIC Platform Force Start Script - WORKING VERSION"
-echo "======================================================="
+echo "🚀 TRONIC Platform Force Start Script - Environment-Aware"
+echo "========================================================"
 
 # Colors for output
 RED='\033[0;31m'
@@ -15,6 +15,19 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Get configuration from environment or use defaults
+BACKEND_PORT=${PORT:-5500}
+FRONTEND_PORT=${FRONTEND_PORT:-4001}
+BACKEND_URL="http://localhost:$BACKEND_PORT"
+FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+
+echo "Configuration:"
+echo "  Backend Port: $BACKEND_PORT"
+echo "  Frontend Port: $FRONTEND_PORT"
+echo "  Backend URL: $BACKEND_URL"
+echo "  Frontend URL: $FRONTEND_URL"
+echo ""
+
 # Step 1: Kill any existing processes
 echo -e "${BLUE}Step 1: Killing any existing TRONIC processes...${NC}"
 pkill -f "node server.js" 2>/dev/null || echo "No backend processes"
@@ -22,10 +35,10 @@ pkill -f "react-scripts start" 2>/dev/null || echo "No frontend processes"
 
 # Also kill on common ports
 if command -v lsof &> /dev/null; then
-    lsof -ti:3000 | xargs kill -9 2>/dev/null || echo "No process on 3000"
-    lsof -ti:3001 | xargs kill -9 2>/dev/null || echo "No process on 3001"
-    lsof -ti:4001 | xargs kill -9 2>/dev/null || echo "No process on 4001"
-    lsof -ti:5500 | xargs kill -9 2>/dev/null || echo "No process on 5500"
+    # Kill processes on common ports
+    for port in 3000 3001 4001 5500; do
+        lsof -ti:$port | xargs kill -9 2>/dev/null || echo "No process on $port"
+    done
 fi
 
 sleep 2
@@ -40,7 +53,7 @@ echo -e "${BLUE}Step 3: Installing dependencies...${NC}"
 # Backend dependencies
 if [ ! -d "node_modules" ]; then
     echo "Installing backend dependencies..."
-    npm install --no-optional --no-audit --no-fund
+    npm install --prefix . --local
 else
     echo "Backend dependencies already installed"
 fi
@@ -55,9 +68,9 @@ else
 fi
 cd tronic
 
-# Step 4: Start backend on port 5500
-echo -e "${BLUE}Step 4: Starting backend on port 5500...${NC}"
-PORT=5500 node server.js > backend.log 2>&1 &
+# Step 4: Start backend
+echo -e "${BLUE}Step 4: Starting backend on port $BACKEND_PORT...${NC}"
+PORT=$BACKEND_PORT node server.js > backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend PID: $BACKEND_PID"
 
@@ -70,9 +83,9 @@ echo -e "${BLUE}Step 6: Verifying backend health...${NC}"
 MAX_RETRIES=10
 RETRY=0
 while [ $RETRY -lt $MAX_RETRIES ]; do
-    if curl -f -s "http://localhost:5500/api/health" > /dev/null 2>&1; then
+    if curl -f -s "$BACKEND_URL/api/health" > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Backend is healthy and responding!${NC}"
-        curl -s "http://localhost:5500/api/health"
+        curl -s "$BACKEND_URL/api/health"
         break
     else
         RETRY=$((RETRY + 1))
@@ -87,10 +100,10 @@ if [ $RETRY -eq $MAX_RETRIES ]; then
     exit 1
 fi
 
-# Step 7: Start frontend on port 4001
-echo -e "${BLUE}Step 7: Starting frontend on port 4001...${NC}"
+# Step 7: Start frontend
+echo -e "${BLUE}Step 7: Starting frontend on port $FRONTEND_PORT...${NC}"
 cd tronic/frontend
-PORT=4001 BROWSER=none npm start > ../frontend.log 2>&1 &
+PORT=$FRONTEND_PORT BROWSER=none npm start > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 echo "Frontend PID: $FRONTEND_PID"
 cd tronic
@@ -105,7 +118,7 @@ MAX_FRONTEND_RETRIES=20
 FRONTEND_RETRY=0
 
 while [ $FRONTEND_RETRY -lt $MAX_FRONTEND_RETRIES ]; do
-    if curl -f -s "http://localhost:4001" > /dev/null 2>&1; then
+    if curl -f -s "$FRONTEND_URL" > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Frontend is accessible!${NC}"
         break
     else
@@ -124,19 +137,19 @@ echo -e "\n${GREEN}🎉 TRONIC PLATFORM SUCCESSFULLY STARTED!${NC}"
 echo "=================================="
 echo -e "${GREEN}Backend PID:${NC} $BACKEND_PID"
 echo -e "${GREEN}Frontend PID:${NC} $FRONTEND_PID"
-echo -e "${GREEN}Backend URL:${NC} http://localhost:5500"
-echo -e "${GREEN}Frontend URL:${NC} http://localhost:4001"
+echo -e "${GREEN}Backend URL:${NC} $BACKEND_URL"
+echo -e "${GREEN}Frontend URL:${NC} $FRONTEND_URL"
 
 echo -e "\n${BLUE}📋 ACCESS INSTRUCTIONS:${NC}"
-echo "1. Open your browser to: http://localhost:4001"
+echo "1. Open your browser to: $FRONTEND_URL"
 echo "2. Register a new account or login"
 echo "3. Use the AI chat functionality"
-echo "4. Check API at: http://localhost:5500/api/health"
+echo "4. Check API at: $BACKEND_URL/api/health"
 
 echo -e "\n${BLUE}🔍 MONITORING:${NC}"
 echo "- Backend logs: tail -f backend.log"
 echo "- Frontend logs: tail -f frontend.log"
-echo "- Backend status: curl http://localhost:5500/api/health"
+echo "- Backend status: curl $BACKEND_URL/api/health"
 
 echo -e "\n${YELLOW}Keep this terminal open. Press Ctrl+C to stop all services.${NC}"
 

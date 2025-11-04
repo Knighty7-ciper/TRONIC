@@ -29,8 +29,8 @@ const getSocketURL = () => {
     const port = window.location.port || (protocol === 'https:' ? '443' : '80');
     return `${protocol}//${hostname}:${port}`;
   }
-  // In development, use explicit URL
-  return process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5500';
+  // In development, use environment variable
+  return process.env.REACT_APP_SOCKET_URL || window.location.origin;
 };
 
 const socket = io(getSocketURL());
