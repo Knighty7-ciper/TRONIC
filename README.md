@@ -95,34 +95,6 @@ PORT=5500 node server.js &
 cd frontend && PORT=4001 npm start
 ```
 
-## 🔧 Configuration
-
-### Environment Variables (.env)
-
-The platform includes a complete `.env` file with:
-
-```env
-# Backend Configuration
-PORT=5500
-NODE_ENV=development
-
-# Supabase Database
-SUPABASE_URL=https://wszbkkdhlzpwjrexvyrl.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=...
-
-# AI Integration
-GEMINI_API_KEY=AIzaSyDynJkTlhIsQls1bgsZ3ydBMHfrda_wPPA
-
-# Authentication
-JWT_SECRET_KEY=60357827208a50cdbee3754804dc11f75b30ac50cd0768fdde1e55e7d1456637
-
-# Frontend Configuration
-REACT_APP_API_URL=http://localhost:5500/api
-REACT_SUPABASE_URL=https://wszbkkdhlzpwjrexvyrl.supabase.co
-REACT_GEMINI_API_KEY=AIzaSyDynJkTlhIsQls1bgsZ3ydBMHfrda_wPPA
-REACT_JWT_SECRET=60357827208a50cdbee3754804dc11f75b30ac50cd0768fdde1e55e7d1456637
-```
 
 ## 🌐 Access Points
 
