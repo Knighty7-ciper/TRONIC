@@ -11,6 +11,20 @@
   REACT_APP_NETLIFY = "true"
   CI = "false"
 
+# API Routing - Proxy API requests to backend functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
+
+# WebSocket proxy for real-time features
+[[redirects]]
+  from = "/socket.io/*"
+  to = "/.netlify/functions/server/socket.io/:splat"
+  status = 200
+  force = true
+
 # SPA Routing Support
 [[redirects]]
   from = "/*"
@@ -40,7 +54,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; connect-src 'self' https://wszbkkdhlzpwjrexvyrl.supabase.co https://generativelanguage.googleapis.com;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; connect-src 'self' https://wszbkkdhlzpwjrexvyrl.supabase.co https://generativelanguage.googleapis.com ws: wss:; img-src 'self' data: https:; media-src 'self'; worker-src 'self' blob:;"
 
 # Cache static assets
 [[headers]]

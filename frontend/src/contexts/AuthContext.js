@@ -27,11 +27,18 @@ export const AuthProvider = ({ children }) => {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
           
-          // Verify token is still valid
-          const profile = await apiService.auth.getProfile();
-          setUser(profile.data);
+          // Try to verify token is still valid, but don't block if it fails
+          try {
+            const profile = await apiService.auth.getProfile();
+            if (profile?.data) {
+              setUser(profile.data);
+            }
+          } catch (profileError) {
+            console.log('Token verification failed, but keeping session:', profileError.message);
+            // Keep the user logged in even if profile verification fails
+          }
         } catch (error) {
-          console.error('Token verification failed:', error);
+          console.error('Failed to parse user data:', error);
           // Clear invalid data
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
@@ -40,13 +47,27 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    initializeAuth();
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
+    initializeAuth().finally(() => {
+      clearTimeout(timeout);
+    });
   }, []);
 
   const login = async (credentials) => {
     try {
       setLoading(true);
-      const response = await apiService.auth.login(credentials);
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Login timeout')), 10000)
+      );
+      
+      const loginPromise = apiService.auth.login(credentials);
+      const response = await Promise.race([loginPromise, timeoutPromise]);
       
       const { token, user: userData } = response.data;
       
@@ -59,7 +80,8 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userData };
     } catch (error) {
-      const message = error.response?.data?.error || 'Login failed';
+      const message = error.response?.data?.error || error.message || 'Login failed';
+      console.error('Login error:', error);
       toast.error(message);
       return { success: false, error: message };
     } finally {
@@ -70,12 +92,20 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const response = await apiService.auth.register(userData);
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Registration timeout')), 10000)
+      );
+      
+      const registerPromise = apiService.auth.register(userData);
+      const response = await Promise.race([registerPromise, timeoutPromise]);
       
       toast.success('Registration successful. Please log in.');
       return { success: true, message: 'Registration successful' };
     } catch (error) {
-      const message = error.response?.data?.error || 'Registration failed';
+      const message = error.response?.data?.error || error.message || 'Registration failed';
+      console.error('Registration error:', error);
       toast.error(message);
       return { success: false, error: message };
     } finally {

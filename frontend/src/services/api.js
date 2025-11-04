@@ -1,8 +1,22 @@
 import axios from 'axios';
 
 // Create axios instance with base configuration
+const getBaseURL = () => {
+  // In production, use relative paths or deployed URL
+  if (process.env.NODE_ENV === 'production') {
+    // For Netlify deployment, use relative paths that proxy to backend
+    if (process.env.REACT_APP_API_URL) {
+      return process.env.REACT_APP_API_URL;
+    }
+    // Fallback to relative API paths
+    return '/api';
+  }
+  // In development, use explicit URL
+  return process.env.REACT_APP_API_URL || 'http://localhost:5500/api';
+};
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5500/api',
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

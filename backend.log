@@ -1,11 +1,10 @@
-[dotenv@17.2.3] injecting env (6) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
 ⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217
 
     🚀 Cyberpunk AI Platform Server Running
     ======================================
     Port: 5500
     Environment: production
-    Time: 2025-11-03T10:50:01.819Z
+    Time: 2025-11-03T21:48:18.597Z
     
     🔗 API Endpoints:
     - Auth: /api/auth/*
@@ -20,4 +19,6 @@
     💾 Database: Supabase connected
     🤖 AI: Gemini API ready
     
-::ffff:127.0.0.1 - - [03/Nov/2025:10:50:02 +0000] "GET /api/health HTTP/1.1" 200 98 "-" "curl/7.88.1"
+::ffff:127.0.0.1 - - [03/Nov/2025:21:48:18 +0000] "GET /api/health HTTP/1.1" 200 98 "-" "curl/7.88.1"
+::ffff:127.0.0.1 - - [03/Nov/2025:21:48:34 +0000] "GET /api/health HTTP/1.1" 200 99 "-" "curl/7.88.1"
+::ffff:127.0.0.1 - - [03/Nov/2025:21:48:34 +0000] "GET /api/health HTTP/1.1" 200 99 "-" "curl/7.88.1"

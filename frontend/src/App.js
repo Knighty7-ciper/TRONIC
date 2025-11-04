@@ -21,7 +21,19 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 
 // Socket connection
-const socket = io(process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5500');
+const getSocketURL = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, use same origin for WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const hostname = window.location.hostname;
+    const port = window.location.port || (protocol === 'https:' ? '443' : '80');
+    return `${protocol}//${hostname}:${port}`;
+  }
+  // In development, use explicit URL
+  return process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5500';
+};
+
+const socket = io(getSocketURL());
 
 function App() {
   return (
