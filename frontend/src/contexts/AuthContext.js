@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { authService, dbService } from '../config/supabase';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -16,39 +16,28 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from Supabase session
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('user');
-
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
-          
-          // Try to verify token is still valid, but don't block if it fails
+      try {
+        // Get current session from Supabase
+        const session = await authService.getSession();
+        
+        if (session?.user) {
+          // Get user profile from database
           try {
-            const profilePromise = apiService.auth.getProfile();
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile timeout')), 3000)
-            );
-            const profile = await Promise.race([profilePromise, timeoutPromise]);
-            if (profile?.data) {
-              setUser(profile.data);
-            }
+            const profile = await dbService.getUserProfile(session.user.id);
+            setUser(profile || session.user);
           } catch (profileError) {
-            console.log('Token verification failed, but keeping session:', profileError.message);
-            // Keep the user logged in even if profile verification fails
+            console.log('Profile not found, using session user:', profileError.message);
+            setUser(session.user);
           }
-        } catch (error) {
-          console.error('Failed to parse user data:', error);
-          // Clear invalid data
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
         }
+      } catch (error) {
+        console.log('No active session found:', error.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     // Add a timeout to prevent infinite loading
@@ -59,32 +48,74 @@ export const AuthProvider = ({ children }) => {
     initializeAuth().finally(() => {
       clearTimeout(timeout);
     });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (credentials) => {
     try {
       setLoading(true);
       
+      const { email, password } = credentials;
+      
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Login timeout')), 10000)
       );
       
-      const loginPromise = apiService.auth.login(credentials);
-      const response = await Promise.race([loginPromise, timeoutPromise]);
+      const loginPromise = authService.signIn(email, password);
+      const { user, session } = await Promise.race([loginPromise, timeoutPromise]);
       
-      const { token, user: userData } = response.data;
+      if (user) {
+        // Get or create user profile
+        let profile;
+        try {
+          profile = await dbService.getUserProfile(user.id);
+        } catch (profileError) {
+          // Create profile if it doesn't exist
+          profile = await dbService.createUserProfile({
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || user.email.split('@')[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
+        
+        setUser(profile || user);
+        toast.success('Authentication successful');
+        
+        // Log activity
+        try {
+          await dbService.createActivityLog({
+            user_id: user.id,
+            action: 'login',
+            details: 'User logged in successfully',
+            created_at: new Date().toISOString()
+          });
+        } catch (logError) {
+          console.log('Failed to log activity:', logError.message);
+        }
+        
+        return { success: true, user: profile || user };
+      }
       
-      // Store auth data
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      setUser(userData);
-      toast.success('Authentication successful');
-      
-      return { success: true, user: userData };
+      throw new Error('No user data received');
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Login failed';
+      const message = error.message || 'Login failed';
       console.error('Login error:', error);
       toast.error(message);
       return { success: false, error: message };
@@ -97,18 +128,46 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
+      const { email, password, name } = userData;
+      
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Registration timeout')), 10000)
       );
       
-      const registerPromise = apiService.auth.register(userData);
-      await Promise.race([registerPromise, timeoutPromise]);
+      const registerPromise = authService.signUp(email, password, { name });
+      const { user, session } = await Promise.race([registerPromise, timeoutPromise]);
       
-      toast.success('Registration successful. Please log in.');
-      return { success: true, message: 'Registration successful' };
+      if (user) {
+        // Create user profile in database
+        const profile = await dbService.createUserProfile({
+          id: user.id,
+          email: user.email,
+          name: name || user.email.split('@')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        
+        toast.success('Registration successful! Please check your email to confirm your account.');
+        
+        // Log activity
+        try {
+          await dbService.createActivityLog({
+            user_id: user.id,
+            action: 'registration',
+            details: 'User registered successfully',
+            created_at: new Date().toISOString()
+          });
+        } catch (logError) {
+          console.log('Failed to log activity:', logError.message);
+        }
+        
+        return { success: true, message: 'Registration successful', user: profile };
+      }
+      
+      throw new Error('Registration failed - no user data received');
     } catch (error) {
-      const message = error.response?.data?.error || error.message || 'Registration failed';
+      const message = error.message || 'Registration failed';
       console.error('Registration error:', error);
       toast.error(message);
       return { success: false, error: message };
@@ -119,34 +178,82 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiService.auth.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear local data regardless of API call result
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      setLoading(true);
+      
+      // Sign out from Supabase
+      await authService.signOut();
+      
+      // Log activity if user was logged in
+      if (user) {
+        try {
+          await dbService.createActivityLog({
+            user_id: user.id,
+            action: 'logout',
+            details: 'User logged out successfully',
+            created_at: new Date().toISOString()
+          });
+        } catch (logError) {
+          console.log('Failed to log logout activity:', logError.message);
+        }
+      }
+      
+      // Clear state
       setUser(null);
       toast.success('Logged out successfully');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if signOut fails, clear local state
+      setUser(null);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
     }
   };
 
   const updateProfile = async (profileData) => {
     try {
-      const profilePromise = apiService.auth.getProfile();
+      const currentUser = await authService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Profile update timeout')), 5000)
       );
-      const response = await Promise.race([profilePromise, timeoutPromise]);
-      const updatedUser = response.data;
       
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      const updatePromise = authService.updateProfile(profileData);
+      const updatedAuth = await Promise.race([updatePromise, timeoutPromise]);
+      
+      // Update profile in database
+      const updatedProfile = await dbService.updateUserProfile(currentUser.id, {
+        ...profileData,
+        updated_at: new Date().toISOString()
+      });
+      
+      // Update local state
+      setUser(updatedProfile);
       
       toast.success('Profile updated successfully');
-      return { success: true, user: updatedUser };
+      
+      // Log activity
+      try {
+        await dbService.createActivityLog({
+          user_id: currentUser.id,
+          action: 'profile_update',
+          details: 'User profile updated',
+          created_at: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.log('Failed to log activity:', logError.message);
+      }
+      
+      return { success: true, user: updatedProfile };
     } catch (error) {
-      const message = error.response?.data?.error || 'Profile update failed';
+      const message = error.message || 'Profile update failed';
+      console.error('Profile update error:', error);
       toast.error(message);
       return { success: false, error: message };
     }
